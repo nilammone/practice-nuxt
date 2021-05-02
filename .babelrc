@@ -5,9 +5,16 @@
         [
           "@babel/preset-env",
           {
+            "loose": true,
+            "shippedProposals": true,
             "targets": {
               "node": "current"
-            }
+            },
+            "plugins": [
+              "@babel/plugin-proposal-private-methods",
+              "@babel/plugin-proposal-class-properties",
+              { "loose": true }
+            ]
           }
         ]
       ]

@@ -88,3 +88,6 @@ sw.*
 
 # Vim swap files
 *.swp
+
+# other
+517d4bc.js
