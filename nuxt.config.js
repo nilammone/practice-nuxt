@@ -1,4 +1,5 @@
 import colors from 'vuetify/es5/util/colors'
+const webpack = require('webpack')
 
 export default {
   serverMiddleware: ['~/api/auth.js'],
@@ -97,24 +98,20 @@ export default {
   build: {
     extend(config, { isClient }) {
       if (isClient) {
-        const { vendor } = config.entry
-        const vendor2 = ['axios', 'vuetify', 'vee-validate']
-        config.entry.vendor = vendor.filter((v) => !vendor2.includes(v))
-        config.entry.vendor2 = vendor2
-        const plugin = config.plugins.find(
-          (plugin) => ~plugin.chunkNames.indexOf('vendor')
+        config.entry.vendor = config.entry.vendor.filter(
+          (v) => !['axios', 'vuetify', 'vee-validate'].includes(v)
         )
-        const old = plugin.minChunks
-        plugin.minChunks = function (module, count) {
-          return (
-            old(module, count) &&
-            !/(axios)|(vuetify)|(vee-validate)/.test(module.context)
-          )
-        }
+        config.plugins.unshift(
+          new webpack.optimize.CommonsChunkPlugin({
+            name: 'app',
+            children: true,
+            async: 'vendor2',
+            minChunks(module, count) {
+              return /(axios)|(vuetify)|(vee-validate)/.test(module.context)
+            },
+          })
+        )
       }
-    },
-    filenames: {
-      app: '[name].[chunkhash].js',
     },
     vendor: ['axios', 'vuetify', 'vee-validate'],
   },
