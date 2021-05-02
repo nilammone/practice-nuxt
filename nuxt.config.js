@@ -1,5 +1,4 @@
 import colors from 'vuetify/es5/util/colors'
-const webpack = require('webpack')
 
 export default {
   serverMiddleware: ['~/api/auth.js'],
@@ -96,23 +95,59 @@ export default {
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
-    extend(config, { isClient }) {
-      if (isClient) {
-        config.entry.vendor = config.entry.vendor.filter(
-          (v) => !['axios', 'vuetify', 'vee-validate'].includes(v)
-        )
-        config.plugins.unshift(
-          new webpack.optimize.CommonsChunkPlugin({
-            name: 'app',
-            children: true,
-            async: 'vendor2',
-            minChunks(module, count) {
-              return /(axios)|(vuetify)|(vee-validate)/.test(module.context)
+    babel: {
+      plugins: [
+        [
+          'transform-imports',
+          {
+            vuetify: {
+              transform: 'vuetify/es5/components/${member}',
+              preventFullImport: true,
             },
-          })
-        )
+          },
+        ],
+      ],
+    },
+    // cssSourceMap: false, // add this into the nuxt.config
+    extend(config) {
+      config.devtool = false
+    },
+    vendor: [
+      // '~/plugins/vuetify.js',
+      // '~/plugins/vee-validate.js',
+      'firebase',
+    ],
+    optimization: {
+      splitChunks: {
+        chunks: 'all',
+        automaticNameDelimiter: '.',
+        name: true,
+        cacheGroups: {},
+        minSize: 100000,
+        maxSize: 100000,
+      },
+    },
+    maxChunkSize: 100000,
+    extractCSS: true,
+    /*
+     ** Run ESLint on save
+     */
+    extend(config, ctx) {
+      if (ctx.isDev && ctx.isClient) {
+        config.module.rules.push({
+          enforce: 'pre',
+          test: /\.(js|vue)$/,
+          loader: 'eslint-loader',
+          exclude: /(node_modules)/,
+        })
+      }
+      if (ctx.isServer) {
+        config.externals = [
+          nodeExternals({
+            whitelist: [/^vuetify/],
+          }),
+        ]
       }
     },
-    vendor: ['axios', 'vuetify', 'vee-validate'],
   },
 }
