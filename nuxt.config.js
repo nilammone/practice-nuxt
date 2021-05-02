@@ -94,5 +94,28 @@ export default {
   },
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
-  build: {},
+  build: {
+    extend(config, { isClient }) {
+      if (isClient) {
+        const { vendor } = config.entry
+        const vendor2 = ['axios', 'vuetify', 'vee-validate']
+        config.entry.vendor = vendor.filter((v) => !vendor2.includes(v))
+        config.entry.vendor2 = vendor2
+        const plugin = config.plugins.find(
+          (plugin) => ~plugin.chunkNames.indexOf('vendor')
+        )
+        const old = plugin.minChunks
+        plugin.minChunks = function (module, count) {
+          return (
+            old(module, count) &&
+            !/(axios)|(vuetify)|(vee-validate)/.test(module.context)
+          )
+        }
+      }
+    },
+    filenames: {
+      app: '[name].[chunkhash].js',
+    },
+    vendor: ['axios', 'vuetify', 'vee-validate'],
+  },
 }
